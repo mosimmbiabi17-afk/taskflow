@@ -1,0 +1,19 @@
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  color: #1c1f26;
+  -webkit-font-smoothing: antialiased;
+}
+input, textarea, button { font-family: inherit; }
+button { cursor: pointer; }
+::placeholder { color: #9aa1ad; }
+
+@keyframes tf-spin { to { transform: rotate(360deg); } }
+@keyframes tf-fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes tf-pop { from { opacity: 0; transform: translateY(10px) scale(.98); } to { opacity: 1; transform: none; } }
+
+.tf-cols::-webkit-scrollbar { height: 10px; }
+.tf-cols::-webkit-scrollbar-thumb { background: #c7cad2; border-radius: 8px; border: 2px solid transparent; background-clip: padding-box; }
+.tf-cards::-webkit-scrollbar { width: 8px; }
+.tf-cards::-webkit-scrollbar-thumb { background: #cdd0d8; border-radius: 8px; }
