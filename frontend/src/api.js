@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // Change this if your backend runs somewhere else.
-export const API_BASE_URL = "http://localhost:8000";
+export const API_BASE_URL = "https://taskflow-9p57.onrender.com";
 
 // --- JWT is kept in MEMORY ONLY (never localStorage) -------------------------
 let authToken = null;
