@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 from typing import List as TypingList
 
@@ -24,8 +25,21 @@ def get_board_or_404(board_id: int, db: Session, user: models.User) -> models.Bo
 @router.get("", response_model=TypingList[schemas.BoardOut])
 def list_boards(db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
     """لیست بوردهایی که کاربر مالک یا عضوشونه"""
-    owned = db.query(models.Board).filter(models.Board.owner_id == current_user.id).all()
-    return owned
+    member_ids = (
+        db.query(models.BoardMember.board_id)
+        .filter(models.BoardMember.user_id == current_user.id)
+        .subquery()
+    )
+    return (
+        db.query(models.Board)
+        .filter(
+            or_(
+                models.Board.owner_id == current_user.id,
+                models.Board.id.in_(member_ids),
+            )
+        )
+        .all()
+    )
 
 
 @router.post("", response_model=schemas.BoardOut, status_code=status.HTTP_201_CREATED)

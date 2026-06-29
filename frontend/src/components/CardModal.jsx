@@ -253,12 +253,15 @@ export default function CardModal({ card, listName, onClose, onPatchCard }) {
 
           {!commentsLoading && comments.length > 0 && (
             <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-              {comments.map((c) => (
+              {comments.map((c) => {
+                const authorName = c.user?.username || "User";
+                const authorInitial = authorName[0].toUpperCase();
+                return (
                 <div key={c.id} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-                  <Avatar initial="D" bg="#e7e7f5" color={colors.accent} />
+                  <Avatar initial={authorInitial} bg="#e7e7f5" color={colors.accent} />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-                      <span style={{ fontSize: 13, fontWeight: 600 }}>Demo</span>
+                      <span style={{ fontSize: 13, fontWeight: 600 }}>{authorName}</span>
                       <span style={{ fontSize: 11.5, color: colors.textFaint }}>{relativeTime(c.created_at)}</span>
                     </div>
                     <div style={{ background: "#f4f5f7", borderRadius: 9, padding: "9px 12px", fontSize: 13.5, lineHeight: 1.5, color: "#2b2f38", marginTop: 5 }}>
@@ -266,7 +269,8 @@ export default function CardModal({ card, listName, onClose, onPatchCard }) {
                     </div>
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
 

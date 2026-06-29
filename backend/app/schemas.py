@@ -38,10 +38,19 @@ class CommentCreate(BaseModel):
     content: str
 
 
+class CommentAuthorOut(BaseModel):
+    id: int
+    username: str
+
+    class Config:
+        from_attributes = True
+
+
 class CommentOut(BaseModel):
     id: int
     content: str
     user_id: int
+    user: CommentAuthorOut
     created_at: datetime
 
     class Config:

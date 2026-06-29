@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from typing import List as TypingList
 
 from .. import models, schemas, auth
@@ -104,11 +104,20 @@ def add_comment(
     )
     db.add(new_comment)
     db.commit()
-    db.refresh(new_comment)
-    return new_comment
+    return (
+        db.query(models.Comment)
+        .options(joinedload(models.Comment.user))
+        .filter(models.Comment.id == new_comment.id)
+        .first()
+    )
 
 
 @router.get("/{card_id}/comments", response_model=TypingList[schemas.CommentOut])
 def get_comments(card_id: int, db: Session = Depends(get_db)):
     """لیست کامنت‌های یک کارت"""
-    return db.query(models.Comment).filter(models.Comment.card_id == card_id).all()
+    return (
+        db.query(models.Comment)
+        .options(joinedload(models.Comment.user))
+        .filter(models.Comment.card_id == card_id)
+        .all()
+    )

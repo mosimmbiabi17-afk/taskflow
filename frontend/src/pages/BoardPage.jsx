@@ -184,9 +184,11 @@ export default function BoardPage() {
     }
     const lists = board.lists.map((l) => ({ ...l, cards: [...l.cards] }));
     let moved = null;
+    let srcListId = null;
     for (const l of lists) {
       const i = l.cards.findIndex((c) => c.id === srcId);
       if (i >= 0) {
+        srcListId = l.id;
         moved = l.cards.splice(i, 1)[0];
         break;
       }
@@ -215,7 +217,14 @@ export default function BoardPage() {
     setDragCardId(null);
     setDragOverListId(null);
     setDragOverCardId(null);
-    api.updateCard(srcId, { list_id: targetList, position: idx }).catch(() => {});
+    // persist positions for all cards in the affected lists
+    lists.forEach((l) => {
+      if (l.id === targetList || l.id === srcListId) {
+        l.cards.forEach((c) => {
+          api.updateCard(c.id, { list_id: l.id, position: c.position }).catch(() => {});
+        });
+      }
+    });
   }
 
   // ---------------- card modal ----------------
