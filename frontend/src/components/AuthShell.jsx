@@ -7,6 +7,9 @@ import { colors } from "../tokens";
 /**
  * Shared shell for Login and Register. `mode` is "login" or "register".
  */
+const DEMO_EMAIL = "demo@taskflow.app";
+const DEMO_PASSWORD = "password";
+
 export default function AuthShell({ mode }) {
   const isLogin = mode === "login";
   const navigate = useNavigate();
@@ -15,8 +18,17 @@ export default function AuthShell({ mode }) {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [demoLoading, setDemoLoading] = useState(false);
+
+  async function doLogin(loginEmail, loginPassword) {
+    const loginRes = await api.login({ email: loginEmail, password: loginPassword });
+    const user = { username: loginEmail.split("@")[0], email: loginEmail };
+    login(loginRes.access_token, user);
+    navigate("/dashboard");
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -27,20 +39,31 @@ export default function AuthShell({ mode }) {
     setLoading(true);
     setError("");
     try {
-      let loginRes;
       if (isLogin) {
-        loginRes = await api.login({ email, password });
+        await doLogin(email, password);
       } else {
         await api.register({ username, email, password });
-        loginRes = await api.login({ email, password });
+        const user = { username, email };
+        const loginRes = await api.login({ email, password });
+        login(loginRes.access_token, user);
+        navigate("/dashboard");
       }
-      const user = { username: username || email.split("@")[0], email };
-      login(loginRes.access_token, user);
-      navigate("/dashboard");
     } catch (err) {
       setError(apiErrorMessage(err, "Something went wrong. Please try again."));
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleDemoLogin() {
+    setError("");
+    setDemoLoading(true);
+    try {
+      await doLogin(DEMO_EMAIL, DEMO_PASSWORD);
+    } catch (err) {
+      setError(apiErrorMessage(err, "Demo account unavailable."));
+    } finally {
+      setDemoLoading(false);
     }
   }
 
@@ -110,14 +133,39 @@ export default function AuthShell({ mode }) {
             />
 
             <Label>Password</Label>
-            <TextInput
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              autoComplete={isLogin ? "current-password" : "new-password"}
-              style={{ marginBottom: 7 }}
-            />
+            <div style={{ position: "relative" }}>
+              <TextInput
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                autoComplete={isLogin ? "current-password" : "new-password"}
+                style={{ marginBottom: 7, paddingRight: 40 }}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                tabIndex={-1}
+                style={{
+                  position: "absolute",
+                  right: 4,
+                  top: 11,
+                  width: 30,
+                  height: 30,
+                  border: "none",
+                  background: "none",
+                  color: colors.textFaint,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  borderRadius: 6,
+                  cursor: "pointer",
+                }}
+              >
+                <EyeIcon open={showPassword} />
+              </button>
+            </div>
 
             {error && (
               <div
@@ -184,13 +232,38 @@ export default function AuthShell({ mode }) {
                 background: colors.accentChip,
                 border: "1px dashed #cfcff0",
                 borderRadius: 9,
-                fontSize: 12.5,
-                color: "#5a5a8a",
-                fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
-                lineHeight: 1.6,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 10,
+                flexWrap: "wrap",
               }}
             >
-              demo · demo@taskflow.app / password
+              <span style={{ fontSize: 12.5, color: "#5a5a8a", lineHeight: 1.5 }}>
+                Want to look around first? Try a demo account.
+              </span>
+              <button
+                type="button"
+                onClick={handleDemoLogin}
+                disabled={demoLoading}
+                style={{
+                  height: 30,
+                  padding: "0 12px",
+                  border: `1px solid ${colors.accent}`,
+                  borderRadius: 7,
+                  background: "#fff",
+                  color: colors.accent,
+                  fontSize: 12.5,
+                  fontWeight: 600,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  cursor: demoLoading ? "default" : "pointer",
+                }}
+              >
+                {demoLoading && <Spinner size={12} color={colors.accent} />}
+                <span>Try demo account</span>
+              </button>
             </div>
           )}
         </div>
@@ -244,6 +317,25 @@ function TextInput({ style, ...props }) {
         e.target.style.boxShadow = "none";
       }}
     />
+  );
+}
+
+function EyeIcon({ open }) {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+      {open ? (
+        <>
+          <path d="M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 7 11 7a18.5 18.5 0 0 1-2.16 3.19M6.61 6.61C3.93 8.36 2 11 1 12c0 0 4 7 11 7a10.4 10.4 0 0 0 5.39-1.61" />
+          <path d="M14.12 14.12a3 3 0 1 1-4.24-4.24" />
+          <path d="M1 1l22 22" />
+        </>
+      ) : (
+        <>
+          <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z" />
+          <circle cx="12" cy="12" r="3" />
+        </>
+      )}
+    </svg>
   );
 }
 
